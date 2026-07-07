@@ -6,7 +6,7 @@
   const navIcons = document.querySelectorAll('.nav-icon');
   const backToTop = document.getElementById('backToTop');
   const readingProgress = document.getElementById('readingProgress');
-  const fadeElements = document.querySelectorAll('.fade-in');
+  const revealElements = document.querySelectorAll('.scroll-reveal');
 
   // 移动端导航切换
   if (mobileNavToggle) {
@@ -84,25 +84,49 @@
 
   window.addEventListener('scroll', updateActiveNav);
 
-  // 淡入动画（IntersectionObserver）
-  if ('IntersectionObserver' in window) {
+  // ============================================================
+  // 双向滚动动画：从下方滑入出现，向上滚出消失
+  // ============================================================
+
+  function initRevealAnimation() {
+    if (!('IntersectionObserver' in window)) {
+      // 降级：直接显示所有元素
+      revealElements.forEach(el => el.classList.add('is-visible'));
+      return;
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach(entry => {
+          const el = entry.target;
+
           if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            observer.unobserve(entry.target);
+            // 元素进入视口：从下方滑入出现
+            el.classList.remove('is-hidden');
+            el.classList.add('is-visible');
+          } else {
+            // 元素离开视口：判断方向，添加上滑消失效果
+            const rect = entry.boundingClientRect;
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+            // 如果元素在视口上方（向上滚出顶部），或者已经完全滚过
+            if (rect.bottom < 0 || rect.top < viewportHeight / 2) {
+              el.classList.remove('is-visible');
+              el.classList.add('is-hidden');
+            }
           }
         });
       },
-      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+      {
+        threshold: 0.05,
+        rootMargin: '0px 0px -30px 0px'
+      }
     );
 
-    fadeElements.forEach(el => observer.observe(el));
-  } else {
-    // 降级：直接显示
-    fadeElements.forEach(el => el.classList.add('visible'));
+    revealElements.forEach(el => observer.observe(el));
   }
+
+  initRevealAnimation();
 
   // 键盘支持：ESC 关闭移动端菜单
   document.addEventListener('keydown', (e) => {

@@ -10,6 +10,8 @@
   --shadow: rgba(0, 0, 0, 0.15);
   --radius: 8px;
   --transition: 0.3s ease;
+  --reveal-duration: 0.8s;
+  --reveal-offset: 60px;
 }
 
 * {
@@ -302,17 +304,39 @@ body {
   transition: width 0.1s;
 }
 
-/* 淡入动画 */
-.fade-in {
+/* ============================================================
+   滚动动画：从下方滑入出现，向上滚出消失
+   ============================================================ */
+
+.scroll-reveal {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 0.8s ease, transform 0.8s ease;
+  transform: translateY(var(--reveal-offset));
+  transition: opacity var(--reveal-duration) cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              transform var(--reveal-duration) cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: opacity, transform;
 }
 
-.fade-in.visible {
+/* 进入视口：从下方滑入 */
+.scroll-reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
 }
+
+/* 离开视口（向上滚出）：向上滑出消失 */
+.scroll-reveal.is-hidden {
+  opacity: 0;
+  transform: translateY(calc(var(--reveal-offset) * -1));
+}
+
+/* 延迟动画：为连续元素创造依次出现的效果 */
+.scroll-reveal:nth-child(1) { transition-delay: 0s; }
+.scroll-reveal:nth-child(2) { transition-delay: 0.08s; }
+.scroll-reveal:nth-child(3) { transition-delay: 0.16s; }
+.scroll-reveal:nth-child(4) { transition-delay: 0.24s; }
+.scroll-reveal:nth-child(5) { transition-delay: 0.32s; }
+.scroll-reveal:nth-child(6) { transition-delay: 0.40s; }
+.scroll-reveal:nth-child(7) { transition-delay: 0.48s; }
+.scroll-reveal:nth-child(8) { transition-delay: 0.56s; }
 
 /* 响应式布局 */
 @media (max-width: 768px) {
@@ -385,6 +409,10 @@ body {
   .footer {
     font-size: 16px;
   }
+
+  .scroll-reveal {
+    --reveal-offset: 40px;
+  }
 }
 
 /* 减少动画偏好 */
@@ -393,8 +421,14 @@ body {
     scroll-behavior: auto;
   }
 
-  .fade-in {
+  .scroll-reveal {
     transition: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .scroll-reveal.is-visible,
+  .scroll-reveal.is-hidden {
     opacity: 1;
     transform: none;
   }

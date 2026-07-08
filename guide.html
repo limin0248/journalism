@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GitHub Pages 部署指南 | 财经记者炼成记</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #5385aa;
+      --primary-dark: #3e6a8a;
+      --primary-light: #e8f0f5;
+      --bg: #f7f9fa;
+      --surface: #ffffff;
+      --text: #2d3436;
+      --text-light: #636e72;
+      --border: #dfe6e9;
+      --success: #27ae60;
+      --warning: #e67e22;
+      --danger: #e74c3c;
+      --shadow: rgba(0, 0, 0, 0.08);
+      --radius: 12px;
+      --transition: 0.3s ease;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 90px;
+    }
+
+    body {
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+      font-size: 16px;
+    }
+
+    /* 顶部导航 */
+    .top-nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      z-index: 1000;
+      padding: 0 24px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .top-nav .logo {
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .top-nav .logo::before {
+      content: "◈";
+      font-size: 20px;
+    }
+
+    .top-nav .back-link {
+      color: var(--text-light);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color var(--transition);
+    }
+
+    .top-nav .back-link:hover {
+      color: var(--primary);
+    }
+
+    /* 侧边目录 */
+    .toc {
+      position: fixed;
+      left: 24px;
+      top: 90px;
+      width: 220px;
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 4px 20px var(--shadow);
+      z-index: 100;
+    }
+
+    .toc-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .toc a {
+      display: block;
+      padding: 8px 12px;
+      border-radius: 6px;
+      color: var(--text-light);
+      text-decoration: none;
+      font-size: 14px;
+      transition: all var(--transition);
+      margin-bottom: 4px;
+    }
+
+    .toc a:hover,
+    .toc a.active {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    .toc a .step-num {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      line-height: 22px;
+      text-align: center;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      font-size: 11px;
+      font-weight: 700;
+      margin-right: 8px;
+    }
+
+    .toc a:hover .step-num,
+    .toc a.active .step-num {
+      background: var(--primary-dark);
+    }
+
+    /* 主内容区 */
+    .main {
+      margin-left: 260px;
+      margin-right: 24px;
+      padding-top: 90px;
+      padding-bottom: 60px;
+      max-width: 800px;
+    }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      padding: 48px 40px;
+      border-radius: var(--radius);
+      margin-bottom: 48px;
+      box-shadow: 0 8px 30px rgba(83, 133, 170, 0.3);
+    }
+
+    .hero h1 {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .hero .subtitle {
+      font-size: 16px;
+      opacity: 0.9;
+      line-height: 1.6;
+    }
+
+    .hero .meta {
+      margin-top: 20px;
+      font-size: 13px;
+      opacity: 0.7;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .hero .meta span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* 步骤卡片 */
+    .step-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 40px;
+      margin-bottom: 32px;
+      box-shadow: 0 2px 12px var(--shadow);
+      transition: transform var(--transition), box-shadow var(--transition);
+      scroll-margin-top: 90px;
+    }
+
+    .step-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+
+    .step-card .step-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .step-card .step-badge {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      color: white;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .step-card h2 {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.4;
+      padding-top: 6px;
+    }
+
+    .step-card h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 24px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-card h3::before {
+      content: "▸";
+      color: var(--primary);
+      font-size: 12px;
+    }
+
+    .step-card p {
+      color: var(--text-light);
+      margin-bottom: 12px;
+    }
+
+    /* 表格 */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+
+    .data-table th {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-weight: 600;
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 2px solid var(--primary);
+    }
+
+    .data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .data-table tr:hover td {
+      background: var(--primary-light);
+    }
+
+    .data-table code {
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    /* 代码块 */
+    .code-block {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 20px 24px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 16px 0;
+    }
+
+    .code-block .comment {
+      color: #6a9955;
+    }
+
+    /* 信息框 */
+    .info-box {
+      background: var(--primary-light);
+      border-left: 4px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 0 8px 8px 0;
+      margin: 16px 0;
+      color: var(--text);
+    }
+
+    .info-box.warning {
+      background: #fff8e7;
+      border-left-color: var(--warning);
+    }
+
+    .info-box.success {
+      background: #e8f8f0;
+      border-left-color: var(--success);
+    }
+
+    .info-box strong {
+      color: var(--primary-dark);
+    }
+
+    /* 流程图 */
+    .flow-chart {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin: 24px 0;
+      text-align: center;
+    }
+
+    .flow-chart .flow-item {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      margin: 6px;
+      position: relative;
+    }
+
+    .flow-chart .flow-arrow {
+      color: var(--primary);
+      font-size: 20px;
+      margin: 0 8px;
+    }
+
+    .flow-chart .flow-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 8px 0;
+    }
+
+    /* 点击按钮样式 */
+    .btn-label {
+      display: inline-block;
+      background: var(--primary);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      margin: 0 2px;
+    }
+
+    /* 状态标签 */
+    .status-tag {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin: 0 4px;
+    }
+
+    .status-tag.success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-tag.danger {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    /* 常见问题 */
+    .faq-grid {
+      display: grid;
+      gap: 16px;
+      margin: 16px 0;
+    }
+
+    .faq-item {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px 24px;
+    }
+
+    .faq-item .faq-q {
+      font-weight: 700;
+      color: var(--primary-dark);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .faq-item .faq-q::before {
+      content: "Q";
+      background: var(--primary);
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .faq-item .faq-a {
+      color: var(--text-light);
+      font-size: 14px;
+      padding-left: 32px;
+    }
+
+    /* 响应式 */
+    @media (max-width: 1024px) {
+      .toc { display: none; }
+      .main { margin-left: 24px; }
+    }
+
+    @media (max-width: 640px) {
+      .hero { padding: 32px 24px; }
+      .hero h1 { font-size: 24px; }
+      .step-card { padding: 24px 20px; }
+      .main { margin-left: 16px; margin-right: 16px; }
+    }
+
+    /* 滚动动画 */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 顶部导航 -->
+  <nav class="top-nav">
+    <a href="index.html" class="logo">GitHub Pages 部署指南</a>
+    <a href="index.html" class="back-link">← 返回项目首页</a>
+  </nav>
+
+  <!-- 侧边目录 -->
+  <aside class="toc" id="toc">
+    <div class="toc-title">目录</div>
+    <a href="#step1" class="active"><span class="step-num">1</span>创建仓库</a>
+    <a href="#step2"><span class="step-num">2</span>推送代码</a>
+    <a href="#step3"><span class="step-num">3</span>进入 Pages</a>
+    <a href="#step4"><span class="step-num">4</span>配置 Source</a>
+    <a href="#step5"><span class="step-num">5</span>选分支</a>
+    <a href="#step6"><span class="step-num">6</span>自定义域名</a>
+    <a href="#step7"><span class="step-num">7</span>配置 DNS</a>
+    <a href="#step8"><span class="step-num">8</span>验证 DNS</a>
+    <a href="#step9"><span class="step-num">9</span>启用 HTTPS</a>
+    <a href="#step10"><span class="step-num">10</span>访问网站</a>
+    <a href="#faq">常见问题</a>
+  </aside>
+
+  <!-- 主内容 -->
+  <main class="main">
+
+    <!-- Hero -->
+    <div class="hero">
+      <h1>GitHub Pages 部署流程详解</h1>
+      <p class="subtitle">以部署 <code>journalism</code> 仓库（<code>finance.sensible.cyou</code>）为例，完整梳理每一步的操作含义。</p>
+      <div class="meta">
+        <span>◈ 共 10 个步骤</span>
+        <span>◈ 预计耗时 10-15 分钟</span>
+        <span>◈ 2026年7月</span>
+      </div>
+    </div>
+
+    <!-- 前置条件 -->
+    <div class="info-box" style="margin-bottom: 40px;">
+      <strong>前置条件：</strong>本地项目已初始化 Git 仓库 · 代码已推送到 GitHub · 已购买并持有域名
+    </div>
+
+    <!-- 步骤1 -->
+    <section class="step-card" id="step1">
+      <div class="step-header">
+        <div class="step-badge">1</div>
+        <h2>创建 GitHub 仓库</h2>
+      </div>
+
+      <h3>操作路径</h3>
+      <p>GitHub 右上角 <span class="btn-label">+</span> 下拉菜单 → <span class="btn-label">New repository</span></p>
+
+      <h3>填写内容</h3>
+      <table class="data-table">
+        <tr><th>字段</th><th>含义</th><th>建议值</th></tr>
+        <tr><td>Repository name</td><td>仓库名称（唯一标识）</td><td><code>journalism</code></td></tr>
+        <tr><td>Description</td><td>项目描述（可选）</td><td>财经记者炼成记</td></tr>
+        <tr><td>Public / Private</td><td>公开/私有</td><td><strong>Public</strong>（GitHub Pages 免费版需要公开）</td></tr>
+        <tr><td>Add a README</td><td>初始化 README</td><td><strong>不要勾选</strong>（本地已有则冲突）</td></tr>
+        <tr><td>Add .gitignore</td><td>忽略文件模板</td><td>不要勾选</td></tr>
+        <tr><td>Choose a license</td><td>开源协议</td><td>不要勾选</td></tr>
+      </table>
+
+      <h3>点击按钮</h3>
+      <p><span class="btn-label">Create repository</span>（绿色按钮）</p>
+      <div class="info-box">创建完成后，GitHub 会显示一个 HTTPS 地址，如 <code>https://github.com/limin0248/journalism.git</code></div>
+    </section>
+
+    <!-- 步骤2 -->
+    <section class="step-card" id="step2">
+      <div class="step-header">
+        <div class="step-badge">2</div>
+        <h2>推送本地代码到远程</h2>
+      </div>
+
+      <div class="code-block">
+<span class="comment"># 添加远程仓库地址</span>
+git remote add origin https://github.com/limin0248/journalism.git
+
+<span class="comment"># 将本地分支重命名为 main（GitHub 默认）</span>
+git branch -M main
+
+<span class="comment"># 推送并建立关联</span>
+git push -u origin main</div>
+
+      <h3>命令含义</h3>
+      <table class="data-table">
+        <tr><th>命令</th><th>含义</th></tr>
+        <tr><td><code>git remote add</code></td><td>告诉本地 Git：远程仓库在 GitHub 的哪个地址</td></tr>
+        <tr><td><code>git branch -M main</code></td><td>把本地分支名改成 <code>main</code>（GitHub 默认分支名）</td></tr>
+        <tr><td><code>git push -u origin main</code></td><td>把本地代码推送到远程的 <code>main</code> 分支，并建立追踪关系</td></tr>
+      </table>
+    </section>
+
+    <!-- 步骤3 -->
+    <section class="step-card" id="step3">
+      <div class="step-header">
+        <div class="step-badge">3</div>
+        <h2>进入 GitHub Pages 设置</h2>
+      </div>
+
+      <h3>操作路径</h3>
+      <p>仓库页面 → <span class="btn-label">Settings</span>（顶部标签栏） → 左侧侧边栏 → <span class="btn-label">Pages</span></p>
+
+      <h3>路径含义</h3>
+      <table class="data-table">
+        <tr><th>页面</th><th>功能</th></tr>
+        <tr><td>Settings</td><td>仓库的完整配置中心</td></tr>
+        <tr><td>Pages</td><td>GitHub 的静态网站托管服务配置入口</td></tr>
+      </table>
+    </section>
+
+    <!-- 步骤4 -->
+    <section class="step-card" id="step4">
+      <div class="step-header">
+        <div class="step-badge">4</div>
+        <h2>配置发布源（Source）</h2>
+      </div>
+
+      <h3>界面内容</h3>
+      <p>Source 下拉框 → 选择 <span class="btn-label">Deploy from a branch</span></p>
+
+      <h3>含义</h3>
+      <p>GitHub 提供两种部署方式：</p>
+      <table class="data-table">
+        <tr><th>方式</th><th>说明</th><th>适用场景</th></tr>
+        <tr><td>Deploy from a branch</td><td>从某个分支的文件夹自动部署</td><td>静态网站（HTML/CSS/JS）</td></tr>
+        <tr><td>GitHub Actions</td><td>通过 CI/CD 流程自定义构建</td><td>需要编译的项目（如 Vue、React、Jekyll）</td></tr>
+      </table>
+
+      <div class="info-box success">
+        <strong>选择原因：</strong>本项目是纯静态 HTML 网站，选择 Deploy from a branch 最简单，GitHub 会自动读取分支中的文件并部署。
+      </div>
+    </section>
+
+    <!-- 步骤5 -->
+    <section class="step-card" id="step5">
+      <div class="step-header">
+        <div class="step-badge">5</div>
+        <h2>选择分支和文件夹</h2>
+      </div>
+
+      <h3>界面内容</h3>
+      <table class="data-table">
+        <tr><th>下拉框</th><th>选项</th><th>含义</th></tr>
+        <tr><td>Branch</td><td><code>main</code></td><td>使用哪个分支的代码</td></tr>
+        <tr><td>Folder</td><td><code>/(root)</code></td><td>使用分支根目录作为网站根目录</td></tr>
+      </table>
+
+      <h3>含义</h3>
+      <p><strong>Branch</strong>：GitHub 默认用 <code>main</code> 作为主分支，代码推送到这里</p>
+      <p><strong>/(root)</strong>：表示网站根目录就是 <code>main</code> 分支的根目录（<code>index.html</code> 直接放在仓库根目录下）</p>
+
+      <h3>点击按钮</h3>
+      <p><span class="btn-label">Save</span>（灰色按钮）</p>
+      <div class="info-box">保存后，GitHub 开始构建和部署。页面会刷新，显示部署状态。</div>
+    </section>
+
+    <!-- 步骤6 -->
+    <section class="step-card" id="step6">
+      <div class="step-header">
+        <div class="step-badge">6</div>
+        <h2>配置自定义域名（Custom domain）</h2>
+      </div>
+
+      <h3>操作路径</h3>
+      <p>Pages 设置页面 → 向下滚动到 <span class="btn-label">Custom domain</span> 区域</p>
+
+      <h3>界面内容</h3>
+      <p>输入框 → 填写：<code>finance.sensible.cyou</code></p>
+
+      <h3>点击按钮</h3>
+      <p><span class="btn-label">Save</span>（灰色按钮）</p>
+
+      <h3>含义</h3>
+      <table class="data-table">
+        <tr><th>概念</th><th>说明</th></tr>
+        <tr><td>默认地址</td><td>不配置域名时，网站地址是 <code>https://limin0248.github.io/journalism</code></td></tr>
+        <tr><td>自定义域名</td><td>绑定自己的域名，让用户通过 <code>finance.sensible.cyou</code> 访问</td></tr>
+        <tr><td>CNAME 文件</td><td>GitHub 会自动在仓库中创建/更新 CNAME 文件，内容就是域名</td></tr>
+      </table>
+
+      <div class="info-box warning">
+        此时 GitHub 会尝试检测域名的 DNS 解析是否指向 GitHub，如果 DNS 还没配置，会显示 <span class="status-tag danger">DNS check unsuccessful</span>
+      </div>
+    </section>
+
+    <!-- 步骤7 -->
+    <section class="step-card" id="step7">
+      <div class="step-header">
+        <div class="step-badge">7</div>
+        <h2>配置 DNS 解析（域名服务商处）</h2>
+      </div>
+
+      <h3>操作路径</h3>
+      <p>阿里云域名控制台 → 找到 <code>sensible.cyou</code> → <span class="btn-label">解析</span> → <span class="btn-label">添加记录</span></p>
+
+      <h3>填写内容</h3>
+      <table class="data-table">
+        <tr><th>字段</th><th>值</th><th>含义</th></tr>
+        <tr><td>记录类型</td><td><strong>CNAME</strong></td><td>将域名指向另一个域名（而不是 IP 地址）</td></tr>
+        <tr><td>主机记录</td><td><code>finance</code></td><td>子域名前缀，<code>finance.sensible.cyou</code></td></tr>
+        <tr><td>记录值</td><td><code>limin0248.github.io</code></td><td>指向 GitHub Pages 的服务器地址</td></tr>
+        <tr><td>TTL</td><td>默认（10分钟）</td><td>DNS 缓存时间，越小生效越快</td></tr>
+      </table>
+
+      <h3>点击按钮</h3>
+      <p><span class="btn-label">确认</span> / <span class="btn-label">保存</span></p>
+
+      <h3>含义</h3>
+      <p><strong>CNAME 记录</strong>：告诉 DNS 服务器，<code>finance.sensible.cyou</code> 实际上对应 <code>limin0248.github.io</code></p>
+      <p>用户访问 <code>finance.sensible.cyou</code> 时，DNS 会将其解析到 GitHub 的服务器</p>
+    </section>
+
+    <!-- 步骤8 -->
+    <section class="step-card" id="step8">
+      <div class="step-header">
+        <div class="step-badge">8</div>
+        <h2>验证 DNS 配置</h2>
+      </div>
+
+      <h3>操作路径</h3>
+      <p>回到 GitHub Pages 设置页面 → 黄色横幅 → <span class="btn-label">Check again</span></p>
+
+      <h3>可能的状态</h3>
+      <table class="data-table">
+        <tr><th>状态</th><th>含义</th><th>处理方式</th></tr>
+        <tr><td><span class="status-tag danger">DNS check unsuccessful</span></td><td>DNS 还没生效</td><td>等待几分钟，再点击 Check again</td></tr>
+        <tr><td><span class="status-tag success">DNS check successful</span></td><td>DNS 解析正确</td><td>验证通过，可以下一步</td></tr>
+      </table>
+
+      <h3>原因</h3>
+      <p>DNS 解析从配置到全球生效需要时间（通常几分钟到10分钟）。GitHub 需要确认你的域名确实指向了 GitHub 的服务器，才能继续绑定。</p>
+    </section>
+
+    <!-- 步骤9 -->
+    <section class="step-card" id="step9">
+      <div class="step-header">
+        <div class="step-badge">9</div>
+        <h2>启用 HTTPS（Enforce HTTPS）</h2>
+      </div>
+
+      <h3>操作路径</h3>
+      <p>DNS 验证通过后 → 勾选 <span class="btn-label">Enforce HTTPS</span> 复选框</p>
+
+      <h3>含义</h3>
+      <table class="data-table">
+        <tr><th>选项</th><th>说明</th></tr>
+        <tr><td>不勾选</td><td>网站可以通过 <code>http://</code> 和 <code>https://</code> 两种协议访问</td></tr>
+        <tr><td>勾选后</td><td>强制所有访问走 <code>https://</code>，自动加密，更安全</td></tr>
+      </table>
+
+      <h3>前提条件</h3>
+      <p>必须等 <span class="status-tag success">DNS check successful</span> 后才能勾选，否则复选框是灰色不可用状态。</p>
+    </section>
+
+    <!-- 步骤10 -->
+    <section class="step-card" id="step10">
+      <div class="step-header">
+        <div class="step-badge">10</div>
+        <h2>等待部署完成并访问</h2>
+      </div>
+
+      <h3>部署状态检查</h3>
+      <p>GitHub Pages 设置页面顶部会显示：</p>
+      <div class="info-box">Your site was last deployed to the github-pages environment by the pages build and deployment workflow.</div>
+
+      <h3>访问网站</h3>
+      <p>在浏览器中访问：</p>
+      <div class="code-block">https://finance.sensible.cyou</div>
+
+      <h3>部署时间</h3>
+      <table class="data-table">
+        <tr><th>阶段</th><th>耗时</th></tr>
+        <tr><td>代码推送到 GitHub 后</td><td>约 <strong>1-2 分钟</strong> 自动构建</td></tr>
+        <tr><td>首次绑定自定义域名</td><td>约 <strong>2-5 分钟</strong> 完成 SSL 证书申请和部署</td></tr>
+      </table>
+    </section>
+
+    <!-- 流程总图 -->
+    <section class="step-card" id="flow">
+      <div class="step-header">
+        <div class="step-badge" style="background: #e17055;">📋</div>
+        <h2>流程总图</h2>
+      </div>
+
+      <div class="flow-chart">
+        <div class="flow-row">
+          <div class="flow-item">1. 创建仓库</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item">2. 推送代码</div>
+        </div>
+        <div class="flow-row">
+          <span class="flow-arrow">↓</span>
+          <span></span>
+          <span class="flow-arrow">↓</span>
+        </div>
+        <div class="flow-row">
+          <div class="flow-item">3. 进入 Pages</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item">4. 配置 Source</div>
+        </div>
+        <div class="flow-row">
+          <span class="flow-arrow">↓</span>
+          <span></span>
+          <span class="flow-arrow">↓</span>
+        </div>
+        <div class="flow-row">
+          <div class="flow-item">5. 选分支</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item">6. 自定义域名</div>
+        </div>
+        <div class="flow-row">
+          <span class="flow-arrow">↓</span>
+          <span></span>
+          <span class="flow-arrow">↓</span>
+        </div>
+        <div class="flow-row">
+          <div class="flow-item">7. 配置 DNS</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item">8. 验证 DNS</div>
+        </div>
+        <div class="flow-row">
+          <span class="flow-arrow">↓</span>
+          <span></span>
+          <span class="flow-arrow">↓</span>
+        </div>
+        <div class="flow-row">
+          <div class="flow-item">9. 启用 HTTPS</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item">10. 访问网站</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 后续更新 -->
+    <section class="step-card" id="update">
+      <div class="step-header">
+        <div class="step-badge" style="background: #6c5ce7;">🔄</div>
+        <h2>后续更新代码</h2>
+      </div>
+      <p>代码修改后，只需执行：</p>
+      <div class="code-block">git add .
+git commit -m "描述修改内容"
+git push</div>
+      <p>GitHub Pages 会自动重新部署，约 <strong>1-2 分钟</strong> 后生效。</p>
+    </section>
+
+    <!-- FAQ -->
+    <section class="step-card" id="faq">
+      <div class="step-header">
+        <div class="step-badge" style="background: #fdcb6e;">?</div>
+        <h2>常见问题</h2>
+      </div>
+
+      <div class="faq-grid">
+        <div class="faq-item">
+          <div class="faq-q">DNS check 一直失败</div>
+          <div class="faq-a">DNS 解析未生效。等待 5-10 分钟后再次点击 Check again。</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">网站显示 404</div>
+          <div class="faq-a">没有 <code>index.html</code> 或文件路径错误。确保仓库根目录有 <code>index.html</code>。</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">样式/图片不加载</div>
+          <div class="faq-a">路径错误（用了绝对路径）。检查 CSS/JS 路径是否为相对路径 <code>./css/style.css</code>。</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">旧内容还在</div>
+          <div class="faq-a">浏览器缓存。按 <code>Ctrl+Shift+R</code> 强制刷新。</div>
+        </div>
+        <div class="faq-item">
+          <div class="faq-q">HTTPS 无法勾选</div>
+          <div class="faq-a">DNS 还没验证通过。等 DNS check successful 后再勾选。</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // 目录高亮
+    const tocLinks = document.querySelectorAll('.toc a');
+    const sections = document.querySelectorAll('.step-card');
+
+    function updateActive() {
+      let current = '';
+      const scrollPos = window.scrollY + 120;
+      sections.forEach(section => {
+        if (scrollPos >= section.offsetTop) {
+          current = section.getAttribute('id');
+        }
+      });
+      tocLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+      });
+    }
+
+    window.addEventListener('scroll', updateActive);
+    updateActive();
+
+    // 淡入动画
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.step-card').forEach(el => {
+      el.classList.add('fade-in');
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>
